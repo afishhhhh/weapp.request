@@ -136,7 +136,7 @@ function init (options) {
     dataType = 'json',
     responseType = 'text',
     method = 'GET',
-    cacheMaxAge,
+    // cacheMaxAge,
   } = options
 
   // CACHE_MAX_AGE = cacheMaxAge
