@@ -3,156 +3,178 @@ const {
   isBoolean
 } = require('./utils')
 
-function getData (url) {
-  return new Promise(resolve => {
-    wx.getStorage({
-      key: url,
-      success: res => {
-        console.info('缓存中存在数据\n', `请求地址：${url}`)
-        resolve(res.data)
-      },
-      fail: err => {
-        console.info('缓存中无数据或者读取缓存出错\n', `请求地址：${url}`)
-        resolve()
-      }
-    })
-  })
-}
+const BASE_URL = ''
 
-function saveResponseToCache (url, params, data) {
-  try {
-    const cache = wx.getStorageSync(url) || {}
-    cache[json2Form(params)] = {
-      data,
-      lastModified: +new Date()
-    }
-    wx.setStorageSync(url, cache)
-    
-    console.info('数据已写入缓存\n', `请求地址：${url}`, `请求参数：${json2Form(params)}`)
-  }
-  catch (err) {
-    console.error('数据写入缓存出错\n', `请求地址：${url}`, `请求参数：${json2Form(params)}`)
-  }
-}
+const VALID_STATUS_CODE = code => code >= 200 && code < 300
 
-function validStatusCode (statusCode) {
-  return statusCode >= 200 && statusCode < 300
-}
-
-function validCache (lastModified) {
-  return lastModified + 30 * 60 * 1000 >= +new Date()
+const VALID_CACHE = (cacheMaxAge, lastModified) => {
+  return lastModified + cacheMaxAge * 1000 >= +new Date()
 }
 
 function isGetOrPost (method) {
   return method == 'GET' || method == 'POST'
 }
 
-function wxreq (opts) {
-  return new Promise((resolve, reject) => {
-    console.info('请求服务器数据\n', `请求地址：${opts.url}\n`, `请求参数：${json2Form(opts.data)}`)
-    wx.request({
-      ...opts,
-      success: res => { resolve(res) },
-      fail: err => { reject(err.errMsg) }
+class Request {
+  
+  constructor () {
+    this.baseUrl = BASE_URL
+    this.validCache = VALID_CACHE.bind(this, 1800)
+    this.validStatusCode = VALID_STATUS_CODE
+  }
+
+  _initMethods () {
+  //   const methods = [
+  //     'OPTIONS',
+  //     'GET',
+  //     'HEAD',
+  //     'POST',
+  //     'PUT',
+  //     'DELETE',
+  //     'TRACE',
+  //     'CONNECT',
+  //   ]
+
+  //   methods.forEach(method => {
+  //     this[method.toLowerCase()] = (cache, opts) => {
+  //       opts.method = method
+  //       return this._defaultRequest(cache, opts)
+  //     }
+  //   })
+  }
+
+  _defaultRequest (cache, { url, method, data, ...rest }) {
+    const wxreq = opts => new Promise((resolve, reject) => {
+      wx.request({
+        ...opts,
+        success: res => {
+          // { statusCode, data, header }
+          if (this.validStatusCode(res.statusCode)) {
+            resolve({
+              res,
+              from: 'server',
+            })
+            return
+          }
+          reject(new Error(JSON.stringify(res)))
+        },
+        fail: err => {
+          reject(new Error(err.errMsg))
+        }
+      })
     })
-  })
-}
 
-const request = [
-  'OPTIONS',
-  'GET',
-  'HEAD',
-  'POST',
-  'PUT',
-  'DELETE',
-  'TRACE',
-  'CONNECT',
-].reduce((iter, cur) => {
-  const method = cur.toLowerCase()
-  iter[method] = (url, params, cache, ...opts) => {
-    opts = [cur, ...opts]
-    return defaultRequest(url, params, cache, ...opts)
-  }
+    const getData = url => new Promise(resolve => {
+      wx.getStorage({
+        key: url,
+        success: res => {
+          resolve(res.data)
+        },
+        fail: err => {
+          resolve()
+        }
+      })
+    })
 
-  return iter
-}, {})
-
-function defaultRequest (url, data, cache, ...opts) {
-  const [
-    method, header, dataType, responseType
-  ] = opts
-
-  function wxreqDone (res) {
-    if (validStatusCode(res.statusCode)) {
-      const { errorMsg } = res.data
-      if (errorMsg) {
-        return Promise.reject(errorMsg)
+    const saveData = (url, paramsKey, data) => {
+      let hasCached = false
+  
+      try {
+        const cache = wx.getStorageSync(url) || {}
+        cache[json2Form(paramsKey)] = {
+          data,
+          lastModified: +new Date()
+        }
+        wx.setStorageSync(url, cache)
+  
+        hasCached = true
       }
-
-      if (isGetOrPost(method) && isBoolean(cache)) {
-        saveResponseToCache(url, data, res.data)
+      catch (err) {
+        hasCached = false
       }
-
-      return res
+  
+      return hasCached
     }
-
-    return Promise.reject(JSON.stringify(res))
-  }
-
-  if (isGetOrPost(method) && cache) {
-    return getData(url).then(res => {
-      if (res) {
-        const store = res[json2Form(data)]
-        if (store && validCache(store.lastModified)) {
-          return {
-            from: 'cache',
-            data: store.data
+  
+    if (isGetOrPost(method) && cache) {
+      return getData(url).then(res => {
+        if (res) {
+          const store = res[json2Form(data)]
+          if (store && this.validCache(store.lastModified)) {
+            return {
+              from: 'cache',
+              res: store
+            }
           }
         }
-      }
-      console.info('缓存中无数据或者缓存已失效\n', `请求地址：${url}\n`, `请求参数：${json2Form(data)}`)
 
-      return wxreq({ url, data, method, header, dataType, responseType })
+        return wxreq({ url, data, method, ...rest })
+      })
+      .then(({ from, res }) => {
+        return from == 'cache' ?
+          { from, res } :
+          { from, res, hasCached: saveData(url, data, res.data) }
+      })
+    }
+
+    return wxreq({
+      url, data, method, ...rest
     })
-    .then(res => res.from == 'cache' ? res.data : wxreqDone(res))
-    // .catch(err => Promise.reject({ failed: true, errorMsg: err }))
+    .then(({ from, res }) => {
+      if (isGetOrPost(method) && isBoolean(cache)) {
+        return {
+          from, res,
+          hasCached: saveData(url, data, res.data)
+        }
+      }
+      return { from, res }
+    })
   }
 
-  return wxreq({
-    url, data, method, header, dataType, responseType
-  })
-  .then(wxreqDone)
-  // .catch(err => Promise.reject({ failed: true, errorMsg: err }))
-}
+  do (opts) {
+    let {
+      url,
+      params,
+      cache,
+      method = 'GET',
+      header = {
+        'Content-Type': 'application/json'
+      },
+      dataType = 'json',
+      responseType = 'text',
+    } = opts
 
-function init (options) {
-  const {
-    url,
-    params,
-    cache,
-    header = {
-      'Content-Type': 'application/json'
-    },
-    dataType = 'json',
-    responseType = 'text',
-    method = 'GET',
-    // cacheMaxAge,
-  } = options
+    if (!(/^https/.test(url))) {
+      if (!this.baseUrl) {
+        throw new Error('url is not valid.')
+      }
+      url = this.baseUrl + url
+    }
+  
+    const { form, ...queryParams } = params
+    let data = queryParams
+  
+    if (method == 'POST' && form != void 0) {
+      data = form
+      header['Content-Type'] = 'application/x-www-form-urlencoded'
+    }
 
-  // CACHE_MAX_AGE = cacheMaxAge
-
-  const { form, ...queryParams } = params
-  let _params = queryParams
-
-  if (method == 'POST' && form != void 0) {
-    _params = form
-    header['Content-Type'] = 'application/x-www-form-urlencoded'
+    return this._defaultRequest(cache, {
+      url, data, method, header, dataType, responseType
+    })
   }
 
-  console.info({ url, params: _params, method, cache, header, dataType, responseType })
+  config (opts) {
+    const {
+      baseUrl,
+      cacheMaxAge,
+      validStatusCode,
+    } = opts
 
-  const fn = request[method.toLowerCase()]
-  return fn(url, _params, cache, header, dataType, responseType)
+    baseUrl && (this.baseUrl = baseUrl)
+    validStatusCode && (this.validStatusCode = validStatusCode)
+    cacheMaxAge && (this.validCache = VALID_CACHE.bind(this, cacheMaxAge))
+  }
 }
 
-module.exports = init
+module.exports = new Request()

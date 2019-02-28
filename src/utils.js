@@ -19,9 +19,14 @@ function isBoolean (value) {
   return typeof value == 'boolean'
 }
 
+function isString (value) {
+  return typeof value == 'string'
+}
+
 module.exports = {
   json2Form,
   isObject,
   isUndefined,
   isBoolean,
+  isString,
 }
