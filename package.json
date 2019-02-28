@@ -1,0 +1,25 @@
+{
+  "name": "mp-request",
+  "version": "1.0.0",
+  "description": "一个为小程序提供的，基于 wx.request 扩展的网络请求组件库。",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.1",
+    "gulp-rename": "^1.4.0",
+    "gulp-uglify": "^3.0.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/afishhhhh/mp-request.git"
+  },
+  "author": "afishhhhh",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/afishhhhh/mp-request/issues"
+  },
+  "homepage": "https://github.com/afishhhhh/mp-request#readme"
+}

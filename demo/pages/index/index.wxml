@@ -1,0 +1,17 @@
+<view class="container">
+  <view class="test-wrapper">
+    <view><text>Test 1:\n</text>发送一个 GET 请求，取服务器上最新的数据，请求结果不写入缓存</view>
+    <button bindtap="firstBtnTapped">点击发送 GET 请求</button>
+    <button bindtap="fourthBtnTapped">点击发送带参数的 GET 请求</button>
+  </view>
+  <view class="test-wrapper">
+    <view><text>Test 2:\n</text>发送一个 GET 请求，优先取服务器上最新的数据，请求结果写入缓存</view>
+    <button bindtap="secondBtnTapped">点击发送 GET 请求</button>
+  </view>
+  <view class="test-wrapper">
+    <view><text>Test 3:\n</text>发送一个 GET 请求，优先取缓存中的数据，如果缓存中没有数据或者缓存失效，请求服务器数据并写入缓存</view>
+    <button bindtap="clearCache">清空缓存</button>
+    <button bindtap="updateCacheMaxAge">将缓存有效期设为1秒</button>
+    <button bindtap="thirdBtnTapped">点击发送 GET 请求</button>
+  </view>
+</view>
