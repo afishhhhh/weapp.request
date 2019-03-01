@@ -1,9 +1,14 @@
 {
-  "name": "mp-request",
+  "name": "weapp.request",
   "version": "1.0.0",
-  "description": "一个为小程序提供的，基于 wx.request 扩展的网络请求组件库。",
+  "description": "一个为微信小程序提供的，基于 wx.request 扩展的网络请求组件库。",
   "main": "index.js",
   "miniprogram": "dist",
+  "keywords": [
+    "weapp",
+    "wxapp",
+    "weapp.request"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -18,12 +23,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/afishhhhh/mp-request.git"
+    "url": "git+https://github.com/afishhhhh/weapp.request.git"
   },
-  "author": "afishhhhh",
+  "author": {
+    "name": "afishhhhh",
+    "email": "ygqdev0126@gmail.com"
+  },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/afishhhhh/mp-request/issues"
+    "url": "https://github.com/afishhhhh/weapp.request/issues"
   },
-  "homepage": "https://github.com/afishhhhh/mp-request#readme"
+  "homepage": "https://github.com/afishhhhh/weapp.request#readme"
 }
