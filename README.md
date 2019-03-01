@@ -60,9 +60,9 @@ const request = require('mp-request')
 
    | 配置选项            | 类型                   | 说明                                       | 必填   | 默认值                                 |
    | :-------------- | -------------------- | ---------------------------------------- | ---- | ----------------------------------- |
-   | baseUrl         | `String|Undefined`   | 基础请求路径                                   | 否    |                                     |
-   | cacheMaxAge     | `Number|Undefined`   | 缓存有效期，时间单位为秒                             | 否    | 1800                                |
-   | validStatusCode | `Function|Undefined` | status code 合法区间，该函数接受一个参数，并返回一个 `Boolean` | 否    | `code => code >= 200 && code < 300` |
+   | baseUrl         | `String/Undefined`   | 基础请求路径                                   | 否    |                                     |
+   | cacheMaxAge     | `Number/Undefined`   | 缓存有效期，时间单位为秒                             | 否    | 1800                                |
+   | validStatusCode | `Function/Undefined` | status code 合法区间，该函数接受一个参数，并返回一个 `Boolean` | 否    | `code => code >= 200 && code < 300` |
 
    ``` javascript
    request.config({
@@ -82,7 +82,7 @@ const request = require('mp-request')
 
 | 属性           | 类型                  | 必填   | 默认值         | 说明                                       |
 | ------------ | ------------------- | ---- | ----------- | ---------------------------------------- |
-| cache        | `Boolean|Undefined` | 否    | `undefined` | `undefined` 表示从服务器获取最新数据，不写入缓存；`true` 表示优先从缓存中获取数据，如果缓存中不存在该数据或者缓存已失效，则从服务器获取数据，并写入缓存；`false` 表示优先从服务器获取数据，并将数据写入缓存 |
+| cache        | `Boolean/Undefined` | 否    | `undefined` | `undefined` 表示从服务器获取最新数据，不写入缓存；`true` 表示优先从缓存中获取数据，如果缓存中不存在该数据或者缓存已失效，则从服务器获取数据，并写入缓存；`false` 表示优先从服务器获取数据，并将数据写入缓存 |
 | header       |                     |      |             | 同微信官方文档                                  |
 | dataType     |                     |      |             | 同微信官方文档                                  |
 | responseType |                     |      |             | 同微信官方文档                                  |
