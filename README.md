@@ -1,4 +1,4 @@
-# mp-request
+# weapp.request
 
 一个为微信小程序提供的，基于 wx.request 扩展的网络请求组件库。
 
@@ -9,12 +9,18 @@
 
 ### Install
 
+##### 推荐使用 npm 安装
+
+```
+npm install weapp.request -S
+```
+
 ### Quick Start
 
-##### 引入 mp-request
+##### 引入 weapp.request
 
 ``` javascript
-const request = require('mp-request')
+const request = require('weapp.request')
 ```
 
 1. 发送一个 GET 请求
