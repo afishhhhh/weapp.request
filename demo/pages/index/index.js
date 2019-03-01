@@ -1,4 +1,4 @@
-const request = require('../../mp-request/index.js')
+const request = require('weapp.request')
 
 Page({
 
@@ -33,7 +33,7 @@ Page({
 
   fourthBtnTapped () {
     request.get('search/repositories', {
-      q: 'mp-request',
+      q: 'weapp.request',
       page: 1,
       per_page: 5
     })

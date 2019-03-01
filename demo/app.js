@@ -1,4 +1,4 @@
-const request = require('./mp-request/index')
+const request = require('weapp.request')
 
 App({
 
