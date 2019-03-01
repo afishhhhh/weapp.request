@@ -77,7 +77,7 @@ function verbFunc (verb) {
   return iter
 }, request)
 
-request.config = function globalConfig (options) {
+request.config = function globalConfig (options = {}) {
   const {
     baseUrl,
     cacheMaxAge,
