@@ -43,10 +43,7 @@ class Request {
         success: res => {
           // { statusCode, data, header }
           if (this.validStatusCode(res.statusCode)) {
-            resolve({
-              res,
-              from: 'server',
-            })
+            resolve(res)
             return
           }
           reject(new Error(JSON.stringify(res)))
@@ -57,13 +54,13 @@ class Request {
       })
     })
 
-    const saveData = (url, paramsKey, data) => {
+    const saveData = (url, paramsKey, response) => {
       let hasCached = false
   
       try {
         const cache = wx.getStorageSync(url) || {}
         cache[json2Form(paramsKey)] = {
-          data,
+          response,
           lastModified: +new Date()
         }
         wx.setStorageSync(url, cache)
@@ -85,35 +82,37 @@ class Request {
     const { url, method, data } = options
 
     if (isGetOrPost(method) && cache) {
+      const responseInterceptor = this.interceptors.res.handler
       const res = wx.getStorageSync(url)
       if (res) {
-        const store = res[json2Form(data)]
+        let store = res[json2Form(data)]
         if (store && this.validCache(store.lastModified)) {
-          return Promise.resolve({
-            from: 'cache',
-            res: store
-          })
+          if (responseInterceptor) {
+            store.response = responseInterceptor(store.response) || store.response
+          }
+          return Promise.resolve(store.response)
         }
       }
-
-      return wxreq(options).then(({ from, res }) => ({
-        from, res, hasCached: saveData(url, data, res.data)
-      }))
+      return wxreq(options).then(res => {
+        if (responseInterceptor) {
+          res = responseInterceptor(res) || res
+        }
+        saveData(url, data, res)
+        return res
+      })
     }
 
-    return wxreq(options).then(({ from, res }) => {
+    return wxreq(options).then(res => {
       const responseInterceptor = this.interceptors.res.handler
       if (responseInterceptor) {
         res = responseInterceptor(res) || res
       }
 
       if (isGetOrPost(method) && isBoolean(cache)) {
-        return {
-          from, res,
-          hasCached: saveData(url, data, res.data)
-        }
+        saveData(url, data, res)
+        return res
       }
-      return { from, res }
+      return res
     })
   }
 

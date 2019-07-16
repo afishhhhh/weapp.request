@@ -1,6 +1,6 @@
 {
   "name": "weapp.request",
-  "version": "1.0.0",
+  "version": "1.1.2",
   "description": "一个为微信小程序提供的，基于 wx.request 扩展的网络请求组件库。",
   "main": "index.js",
   "miniprogram": "dist",
