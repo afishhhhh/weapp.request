@@ -6,6 +6,7 @@
 
 1. Promise API
 2. 缓存控制
+3. 请求/响应拦截器
 
 ### Install
 
@@ -74,6 +75,20 @@ const request = require('weapp.request')
    request.config({
      baseUrl: 'https://api.github.com'
    })
+   ```
+
+5. 请求/响应拦截器
+
+   ```
+   // 添加请求拦截器
+   request.interceptors.req.use(function (request) {
+     request.header['X-Tag'] = 'weapp.request'
+   })
+   ```
+   响应拦截器同理。
+   ```
+   // 移除请求拦截器
+   request.interceptors.req.remove()
    ```
 
 ### APIs
