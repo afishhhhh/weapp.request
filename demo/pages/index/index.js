@@ -7,6 +7,14 @@ Page({
   },
 
   onLoad: function () {
+    request.interceptors.req.use(function (request) {
+      request.header['X-Tag'] = 'weapp.request'
+    })
+
+    request.interceptors.res.use(function (response) {
+      return response.data
+    })
+
     request.config({
       baseUrl: 'https://api.github.com/'
     })

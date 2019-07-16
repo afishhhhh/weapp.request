@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "weapp.request": "^1.0.0"
+    "weapp.request": "^1.1.2"
   }
 }
