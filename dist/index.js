@@ -77,6 +77,17 @@ function verbFunc (verb) {
   return iter
 }, request)
 
+request.interceptors = Object.freeze(['req', 'res'].reduce((init, prop) => (
+  init[prop] = Object.freeze({
+    use (handler) {
+      r.interceptors[prop].use(handler)
+    },
+    remove () {
+      r.interceptors[prop].use(null)
+    }
+  }), init
+), {}))
+
 request.config = function globalConfig (options = {}) {
   const {
     baseUrl,

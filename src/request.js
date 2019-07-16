@@ -21,29 +21,22 @@ class Request {
     this.baseUrl = BASE_URL
     this.validCache = VALID_CACHE.bind(this, 1800)
     this.validStatusCode = VALID_STATUS_CODE
+
+    this.interceptors = {
+      req: {
+        use (handler) {
+          this.handler = handler
+        }
+      },
+      res: {
+        use (handler) {
+          this.handler = handler
+        }
+      }
+    }
   }
 
-  _initMethods () {
-  //   const methods = [
-  //     'OPTIONS',
-  //     'GET',
-  //     'HEAD',
-  //     'POST',
-  //     'PUT',
-  //     'DELETE',
-  //     'TRACE',
-  //     'CONNECT',
-  //   ]
-
-  //   methods.forEach(method => {
-  //     this[method.toLowerCase()] = (cache, opts) => {
-  //       opts.method = method
-  //       return this._defaultRequest(cache, opts)
-  //     }
-  //   })
-  }
-
-  _defaultRequest (cache, { url, method, data, ...rest }) {
+  _defaultRequest (cache, options) {
     const wxreq = opts => new Promise((resolve, reject) => {
       wx.request({
         ...opts,
@@ -60,18 +53,6 @@ class Request {
         },
         fail: err => {
           reject(new Error(err.errMsg))
-        }
-      })
-    })
-
-    const getData = url => new Promise(resolve => {
-      wx.getStorage({
-        key: url,
-        success: res => {
-          resolve(res.data)
-        },
-        fail: err => {
-          resolve()
         }
       })
     })
@@ -95,32 +76,37 @@ class Request {
   
       return hasCached
     }
-  
-    if (isGetOrPost(method) && cache) {
-      return getData(url).then(res => {
-        if (res) {
-          const store = res[json2Form(data)]
-          if (store && this.validCache(store.lastModified)) {
-            return {
-              from: 'cache',
-              res: store
-            }
-          }
-        }
 
-        return wxreq({ url, data, method, ...rest })
-      })
-      .then(({ from, res }) => {
-        return from == 'cache' ?
-          { from, res } :
-          { from, res, hasCached: saveData(url, data, res.data) }
-      })
+    const requestInterceptor = this.interceptors.req.handler
+    if (requestInterceptor) {
+      options = requestInterceptor(options) || options
     }
 
-    return wxreq({
-      url, data, method, ...rest
-    })
-    .then(({ from, res }) => {
+    const { url, method, data } = options
+
+    if (isGetOrPost(method) && cache) {
+      const res = wx.getStorageSync(url)
+      if (res) {
+        const store = res[json2Form(data)]
+        if (store && this.validCache(store.lastModified)) {
+          return Promise.resolve({
+            from: 'cache',
+            res: store
+          })
+        }
+      }
+
+      return wxreq(options).then(({ from, res }) => ({
+        from, res, hasCached: saveData(url, data, res.data)
+      }))
+    }
+
+    return wxreq(options).then(({ from, res }) => {
+      const responseInterceptor = this.interceptors.res.handler
+      if (responseInterceptor) {
+        res = responseInterceptor(res) || res
+      }
+
       if (isGetOrPost(method) && isBoolean(cache)) {
         return {
           from, res,
