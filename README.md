@@ -83,6 +83,7 @@ const request = require('weapp.request')
    // 添加请求拦截器
    request.interceptors.req.use(function (request) {
      request.header['X-Tag'] = 'weapp.request'
+     // return request 可以显式地返回一个 request，如果没有 return，则默认返回当前 request
    })
    ```
    响应拦截器同理。
